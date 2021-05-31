@@ -13,7 +13,7 @@
 
 document.getElementById('create').onclick = () => {
   const actionType = document.querySelector('input[name="action-type"]:checked').value;
-  parent.postMessage({ pluginMessage: { type: 'start', actionType } }, '*')
+  parent.postMessage({ pluginMessage: { type: 'init', actionType } }, '*')
 }
 
 document.getElementById('cancel').onclick = () => {
