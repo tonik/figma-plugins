@@ -1,6 +1,7 @@
 {
-  "name": "Tonik-P1",
-  "id": "980857664278952801",
+  "name": "p1",
+  "id": "981182363879439354",
   "api": "1.0.0",
-  "main": "code.js"
+  "main": "code.js",
+  "ui": "ui.html"
 }

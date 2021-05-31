@@ -1,17 +1,16 @@
-const NAMES_WIDTH = []
-const NAMES_HEIGHT = []
+figma.showUI(__html__);
 
-async function traverse(node, name) {
+async function traverse(node, name, actionType) {
   if ("children" in node) {
     if (node.type !== "INSTANCE") {
       for (const child of node.children) {
-        traverse(child, name)
+        traverse(child, name, actionType)
       }
     // TODO: Customizable node name
     } else if (node.name === name) {
       const spaceComp = node.children.find(element => element.name === 'Line' || element.name === 'Space')
       const textNode = node.children.find(element => element.type === "TEXT")
-      const valueToDisplay = NAMES_WIDTH.includes(name) ? spaceComp.width : NAMES_HEIGHT.includes(name) ? spaceComp.height : null
+      const valueToDisplay = actionType === 'width' ? spaceComp.width : spaceComp.height
 
       const textToDisplay = String(`${ valueToDisplay }px`)
 
@@ -25,7 +24,13 @@ async function traverse(node, name) {
   }
 }
 
-for (const selectedComp of figma.currentPage.selection) {
-  traverse(figma.root, selectedComp.name)
-}
-figma.closePlugin()
+
+figma.ui.onmessage = msg => {
+  if (msg.type === 'start') {
+    for (const selectedComp of figma.currentPage.selection) {
+      traverse(figma.root, selectedComp.name, msg.actionType)
+    }
+  }
+
+  figma.closePlugin();
+};
