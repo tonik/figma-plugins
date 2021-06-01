@@ -7,19 +7,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-figma.showUI(__html__);
-function traverse(node, name, actionType) {
+function traverse(node) {
     return __awaiter(this, void 0, void 0, function* () {
         if ("children" in node) {
             if (node.type !== "INSTANCE") {
                 for (const child of node.children) {
-                    traverse(child, name, actionType);
+                    traverse(child);
                 }
             }
-            else if (node.name === name) {
-                const spaceComp = node.children.find((element) => element.name === "Line" || element.name === "Space");
-                const textNode = node.children.find((element) => element.type === "TEXT");
-                const valueToDisplay = actionType === "width" ? spaceComp.width : spaceComp.height;
+            else if (node.name === '_Specification') {
+                const spaceComp = node.children.find(element => /^(size|space)\/(width|height)/.test(element.name));
+                const textNode = node.children.find(element => element.type === "TEXT");
+                const valueToDisplay = /^(size|space)\/(width)/.test(spaceComp.name) ? spaceComp === null || spaceComp === void 0 ? void 0 : spaceComp.width : spaceComp === null || spaceComp === void 0 ? void 0 : spaceComp.height;
                 const textToDisplay = String(`${valueToDisplay}px`);
                 let len = textNode.characters.length;
                 yield figma.loadFontAsync(textNode.getRangeFontName(0, 1));
@@ -29,11 +28,5 @@ function traverse(node, name, actionType) {
         }
     });
 }
-figma.ui.onmessage = (msg) => {
-    if (msg.type === "init") {
-        for (const selectedComp of figma.currentPage.selection) {
-            traverse(figma.root, selectedComp.name, msg.actionType);
-        }
-    }
-    figma.closePlugin();
-};
+traverse(figma.root);
+figma.closePlugin();
