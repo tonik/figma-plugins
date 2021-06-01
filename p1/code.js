@@ -14,12 +14,12 @@ function traverse(node) {
                 for (const child of node.children) {
                     traverse(child);
                 }
-                // TODO: Customizable node name
             }
             else if (node.name === '_Specification') {
-                const spaceComp = node.children.find(element => element.name === 'Line' || element.name === 'Space');
+                const spaceComp = node.children.find(element => /^(size|space)\/(width|height)/.test(element.name));
                 const textNode = node.children.find(element => element.type === "TEXT");
-                const textToDisplay = String(`${Math.max(spaceComp.width, spaceComp.height)}px`);
+                const valueToDisplay = /^(size|space)\/(width)/.test(spaceComp.name) ? spaceComp === null || spaceComp === void 0 ? void 0 : spaceComp.width : spaceComp === null || spaceComp === void 0 ? void 0 : spaceComp.height;
+                const textToDisplay = String(`${valueToDisplay}px`);
                 let len = textNode.characters.length;
                 yield figma.loadFontAsync(textNode.getRangeFontName(0, 1));
                 textNode.deleteCharacters(0, len);
