@@ -1,5 +1,5 @@
 {
-  "name": "react-vdo",
+  "name": "tonik-figma-plugins",
   "private": true,
   "workspaces": [
     "packages/*"
