@@ -45,11 +45,7 @@ const hslToRgb = ({ h, s, l }: HSL) => {
   return { r, g, b }
 }
 
-function rgbToHsl({ r, g, b }) {
-  // r /= 255
-  // g /= 255
-  // b /= 255
-
+const rgbToHsl = ({ r, g, b }) => {
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
   let h

@@ -60,7 +60,7 @@ const hslToRgb = ({ h, s, l }) => {
     }
     return { r, g, b };
 };
-function rgbToHsl({ r, g, b }) {
+const rgbToHsl = ({ r, g, b }) => {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     let h;
@@ -94,7 +94,7 @@ function rgbToHsl({ r, g, b }) {
         s: s * 100,
         l: l * 100,
     };
-}
+};
 const colorLuminance = ({ h, s, l }, range) => {
     const colors = [];
     for (let i = range[0]; i < range[1]; i++) {
