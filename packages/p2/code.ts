@@ -297,9 +297,13 @@ const createPallete = async (el: SceneNode) => {
     for await (const color of palette) {
       const colorInHex = hslToHex(color)
       const colorInRgb = hslToRgb({ h: color.h, s: color.s, l: color.l })
+      const styleName = `${el.name} - ${(palette.length + 1) * 100 - (palette.indexOf(color) + 1) * 100}`
+      const style = figma.createPaintStyle()
+      style.name = styleName
+      style.paints = [{ type: 'SOLID', color: colorInRgb }]
 
       const item = await createItem({
-        title: `${el.name} - ${(palette.length + 1) * 100 - (palette.indexOf(color) + 1) * 100}`,
+        title: styleName,
         colorInRgb,
         colorInHex,
         offsetTop: palette.indexOf(color) * 128,

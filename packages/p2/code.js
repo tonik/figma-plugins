@@ -260,8 +260,12 @@ const createPallete = (el) => __awaiter(this, void 0, void 0, function* () {
                 const color = palette_1_1.value;
                 const colorInHex = hslToHex(color);
                 const colorInRgb = hslToRgb({ h: color.h, s: color.s, l: color.l });
+                const styleName = `${el.name} - ${(palette.length + 1) * 100 - (palette.indexOf(color) + 1) * 100}`;
+                const style = figma.createPaintStyle();
+                style.name = styleName;
+                style.paints = [{ type: 'SOLID', color: colorInRgb }];
                 const item = yield createItem({
-                    title: `${el.name} - ${(palette.length + 1) * 100 - (palette.indexOf(color) + 1) * 100}`,
+                    title: styleName,
                     colorInRgb,
                     colorInHex,
                     offsetTop: palette.indexOf(color) * 128,
