@@ -19,7 +19,6 @@
   "rules": {
     "max-params": ["off"],
     "complexity": ["off"],
-    "react/jsx-boolean-value": ["error", "always"],
     "prefer-destructuring": [
       "error",
       {
