@@ -276,7 +276,13 @@ const createInstanceOfComponent = (
   return elementComponent
 }
 
-const container: Array<FrameNode> = []
+const getColorNumber = (length: number, index: number) => (length + 1) * 100 - (index + 1) * 100
+
+const findTileComponent = () => {
+  return figma.currentPage.findOne((n) => n.type === 'COMPONENT') as ComponentNode
+}
+
+const containers: Array<FrameNode> = []
 const range = [-4, 5]
 
 const createPallete = async (el: SceneNode, index: number) => {
@@ -284,30 +290,38 @@ const createPallete = async (el: SceneNode, index: number) => {
     const { r, g, b } = el.fills[0].color
     const { h, s, l } = rgbToHsl({ r, g, b })
     const palette: Array<HSL> = colorLuminance({ h, s, l }, range)
-    container.push(figma.createFrame())
-    container[index].name = el.name
-    container[index].resizeWithoutConstraints(1216, 128 * palette.length)
-    container[index].x = 1216 * figma.currentPage.selection.indexOf(el)
+    containers.push(figma.createFrame())
+    containers[index].name = el.name
+    containers[index].resizeWithoutConstraints(1216, 128 * palette.length)
+    const indexOfFrame = figma.currentPage.selection.indexOf(el)
+    containers[index].x = 1216 * indexOfFrame + 35 * indexOfFrame
 
     const colorInRgb = hslToRgb({ ...palette[0] })
     const style = figma.createPaintStyle()
-    const colorNumber = (palette.length + 1) * 100 - (palette.indexOf(palette[0]) + 1) * 100
+    const colorNumber = getColorNumber(palette.length, palette.indexOf(palette[0]))
     style.name = `${el.name} / ${el.name} ${colorNumber}`
     style.paints = [{ type: 'SOLID', color: colorInRgb }]
 
-    const mainComponent = await createComponent({
-      title: `${el.name} - ${colorNumber}`,
-      colorInRgb: hslToRgb({ ...palette[0] }),
-      colorInHex: hslToHex(palette[0]),
-      offsetTop: palette.indexOf(palette[0]) * 128,
-    })
-    container[index].appendChild(mainComponent)
-    palette.shift()
+    const componentFinded = findTileComponent()
+
+    const mainComponent =
+      componentFinded ??
+      (await createComponent({
+        title: `${el.name} - ${colorNumber}`,
+        colorInRgb: hslToRgb({ ...palette[0] }),
+        colorInHex: hslToHex(palette[0]),
+        offsetTop: 0,
+      }))
+
+    if (!componentFinded) {
+      containers[index].appendChild(mainComponent)
+      palette.shift()
+    }
 
     for await (const color of palette) {
       const colorInRgb = hslToRgb({ ...color })
       const style = figma.createPaintStyle()
-      const colorNumber = (palette.length + 1) * 100 - (palette.indexOf(color) + 1) * 100
+      const colorNumber = getColorNumber(palette.length, palette.indexOf(color))
       style.name = `${el.name} / ${el.name} ${colorNumber}`
       style.paints = [{ type: 'SOLID', color: colorInRgb }]
 
@@ -315,10 +329,10 @@ const createPallete = async (el: SceneNode, index: number) => {
         title: `${el.name} - ${colorNumber}`,
         colorInRgb: hslToRgb({ ...color }),
         colorInHex: hslToHex(color),
-        offsetTop: (palette.indexOf(color) + 1) * 128,
+        offsetTop: palette.indexOf(color) * 128,
       })
 
-      container[index].appendChild(item)
+      containers[index].appendChild(item)
     }
   }
 }
@@ -337,7 +351,7 @@ const init = async () => {
 }
 
 init().finally(() => {
-  figma.currentPage.selection = container
-  figma.viewport.scrollAndZoomIntoView(container)
+  figma.currentPage.selection = containers
+  figma.viewport.scrollAndZoomIntoView(containers)
   figma.closePlugin()
 })

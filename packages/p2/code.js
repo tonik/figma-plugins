@@ -238,7 +238,11 @@ const createInstanceOfComponent = (mainComponent, options) => {
     badgeElement.insertCharacters(0, colorInHex);
     return elementComponent;
 };
-const container = [];
+const getColorNumber = (length, index) => (length + 1) * 100 - (index + 1) * 100;
+const findTileComponent = () => {
+    return figma.currentPage.findOne((n) => n.type === 'COMPONENT');
+};
+const containers = [];
 const range = [-4, 5];
 const createPallete = (el, index) => __awaiter(this, void 0, void 0, function* () {
     var e_1, _a;
@@ -246,38 +250,42 @@ const createPallete = (el, index) => __awaiter(this, void 0, void 0, function* (
         const { r, g, b } = el.fills[0].color;
         const { h, s, l } = rgbToHsl({ r, g, b });
         const palette = colorLuminance({ h, s, l }, range);
-        container.push(figma.createFrame());
-        container[index].name = el.name;
-        container[index].resizeWithoutConstraints(1216, 128 * palette.length);
-        container[index].x = 1216 * figma.currentPage.selection.indexOf(el);
+        containers.push(figma.createFrame());
+        containers[index].name = el.name;
+        containers[index].resizeWithoutConstraints(1216, 128 * palette.length);
+        const indexOfFrame = figma.currentPage.selection.indexOf(el);
+        containers[index].x = 1216 * indexOfFrame + 35 * indexOfFrame;
         const colorInRgb = hslToRgb(Object.assign({}, palette[0]));
         const style = figma.createPaintStyle();
-        const colorNumber = (palette.length + 1) * 100 - (palette.indexOf(palette[0]) + 1) * 100;
+        const colorNumber = getColorNumber(palette.length, palette.indexOf(palette[0]));
         style.name = `${el.name} / ${el.name} ${colorNumber}`;
         style.paints = [{ type: 'SOLID', color: colorInRgb }];
-        const mainComponent = yield createComponent({
+        const componentFinded = findTileComponent();
+        const mainComponent = componentFinded !== null && componentFinded !== void 0 ? componentFinded : (yield createComponent({
             title: `${el.name} - ${colorNumber}`,
             colorInRgb: hslToRgb(Object.assign({}, palette[0])),
             colorInHex: hslToHex(palette[0]),
-            offsetTop: palette.indexOf(palette[0]) * 128,
-        });
-        container[index].appendChild(mainComponent);
-        palette.shift();
+            offsetTop: 0,
+        }));
+        if (!componentFinded) {
+            containers[index].appendChild(mainComponent);
+            palette.shift();
+        }
         try {
             for (var palette_1 = __asyncValues(palette), palette_1_1; palette_1_1 = yield palette_1.next(), !palette_1_1.done;) {
                 const color = palette_1_1.value;
                 const colorInRgb = hslToRgb(Object.assign({}, color));
                 const style = figma.createPaintStyle();
-                const colorNumber = (palette.length + 1) * 100 - (palette.indexOf(color) + 1) * 100;
+                const colorNumber = getColorNumber(palette.length, palette.indexOf(color));
                 style.name = `${el.name} / ${el.name} ${colorNumber}`;
                 style.paints = [{ type: 'SOLID', color: colorInRgb }];
                 const item = createInstanceOfComponent(mainComponent, {
                     title: `${el.name} - ${colorNumber}`,
                     colorInRgb: hslToRgb(Object.assign({}, color)),
                     colorInHex: hslToHex(color),
-                    offsetTop: (palette.indexOf(color) + 1) * 128,
+                    offsetTop: palette.indexOf(color) * 128,
                 });
-                container[index].appendChild(item);
+                containers[index].appendChild(item);
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -300,7 +308,7 @@ const init = () => __awaiter(this, void 0, void 0, function* () {
     });
 });
 init().finally(() => {
-    figma.currentPage.selection = container;
-    figma.viewport.scrollAndZoomIntoView(container);
+    figma.currentPage.selection = containers;
+    figma.viewport.scrollAndZoomIntoView(containers);
     figma.closePlugin();
 });
