@@ -101,13 +101,12 @@ const colorLuminance = ({ h, s, l }, range) => {
         colors.push({
             h,
             s,
-            l: Math.max(l + 7.5 * i, 0),
+            l: Math.max(l + 11 * i, 0),
         });
     }
     return colors;
 };
-const createColorBadge = ({ text, color }) => __awaiter(this, void 0, void 0, function* () {
-    yield figma.loadFontAsync({ family: 'IBM Plex Mono', style: 'Regular' });
+const createColorBadge = ({ text, color }) => {
     const badgeText = figma.createText();
     badgeText.name = 'Badge';
     badgeText.fontName = { family: 'IBM Plex Mono', style: 'Regular' };
@@ -128,7 +127,7 @@ const createColorBadge = ({ text, color }) => __awaiter(this, void 0, void 0, fu
     badgeFrame.fills = [{ type: 'SOLID', color }];
     badgeFrame.appendChild(badgeText);
     return badgeFrame;
-});
+};
 const createColorFrame = ({ color }) => {
     const colorFrame = figma.createFrame();
     colorFrame.name = 'Color';
@@ -143,8 +142,7 @@ const createTitleFrame = () => {
     titleFrame.fills = [];
     return titleFrame;
 };
-const createTitleText = ({ text }) => __awaiter(this, void 0, void 0, function* () {
-    yield figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+const createTitleText = ({ text }) => {
     const titleText = figma.createText();
     titleText.name = 'Title';
     titleText.fontName = { family: 'Inter', style: 'Regular' };
@@ -154,9 +152,8 @@ const createTitleText = ({ text }) => __awaiter(this, void 0, void 0, function* 
     titleText.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0.03921568627 } }];
     titleText.insertCharacters(0, text);
     return titleText;
-});
-const createDescriptionText = ({ text }) => __awaiter(this, void 0, void 0, function* () {
-    yield figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+};
+const createDescriptionText = ({ text }) => {
     const descriptionText = figma.createText();
     descriptionText.name = 'Description';
     descriptionText.x = 40;
@@ -167,7 +164,7 @@ const createDescriptionText = ({ text }) => __awaiter(this, void 0, void 0, func
     descriptionText.fills = [{ type: 'SOLID', color: { r: 0.5176470588, g: 0.5176470588, b: 0.5882352941 } }];
     descriptionText.insertCharacters(0, text);
     return descriptionText;
-});
+};
 const createLineElement = () => {
     const lineElement = figma.createLine();
     lineElement.name = 'Line';
@@ -199,79 +196,88 @@ const createContentFrame = () => {
 };
 const createElementComponent = () => {
     const elementComponent = figma.createComponent();
-    elementComponent.name = 'Element';
+    elementComponent.name = 'DS_Color_Tile';
     elementComponent.resizeWithoutConstraints(1216, 128);
     return elementComponent;
 };
-let mainComponent = null;
-const createItem = ({ title, colorInRgb, colorInHex, offsetTop, }) => __awaiter(this, void 0, void 0, function* () {
-    if (mainComponent) {
-        const elementComponent = mainComponent.createInstance();
-        elementComponent.y = offsetTop;
-        const titleElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Title');
-        const colorElement = elementComponent.findOne((n) => n.type === 'FRAME' && n.name === 'Color');
-        const badgeElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Badge');
-        console.log('colorElement', colorElement);
-        colorElement.fills = [{ type: 'SOLID', color: colorInRgb }];
-        titleElement.deleteCharacters(0, titleElement.characters.length);
-        titleElement.insertCharacters(0, title);
-        badgeElement.deleteCharacters(0, badgeElement.characters.length);
-        badgeElement.insertCharacters(0, colorInHex);
-        return elementComponent;
-    }
-    const elementComponent = yield createElementComponent();
-    mainComponent = elementComponent;
+const createComponent = ({ title, colorInRgb, colorInHex, offsetTop, }) => __awaiter(this, void 0, void 0, function* () {
+    const elementComponent = createElementComponent();
     elementComponent.y = offsetTop;
-    const contentFrame = yield createContentFrame();
-    const contentInnerFrame = yield createContentInnerFrame();
-    const descriptionText = yield createDescriptionText({ text: 'Short information about usage.' });
-    const titleFrame = yield createTitleFrame();
-    const badgeText = yield createColorBadge({
+    const contentFrame = createContentFrame();
+    const contentInnerFrame = createContentInnerFrame();
+    const descriptionText = createDescriptionText({ text: 'Short information about usage.' });
+    const titleFrame = createTitleFrame();
+    const badgeText = createColorBadge({
         text: colorInHex,
         color: { r: 0.9294117647, g: 0.9294117647, b: 0.9843137255 },
     });
-    const titleText = yield createTitleText({ text: title });
-    const colorFrame = yield createColorFrame({ color: colorInRgb });
-    const lineElement = yield createLineElement();
-    yield titleFrame.appendChild(badgeText);
-    yield titleFrame.appendChild(titleText);
-    yield contentInnerFrame.appendChild(titleFrame);
-    yield contentInnerFrame.appendChild(descriptionText);
-    yield contentFrame.appendChild(colorFrame);
-    yield contentFrame.appendChild(contentInnerFrame);
-    yield elementComponent.appendChild(lineElement);
-    yield elementComponent.appendChild(contentFrame);
+    const titleText = createTitleText({ text: title });
+    const colorFrame = createColorFrame({ color: colorInRgb });
+    const lineElement = createLineElement();
+    titleFrame.appendChild(badgeText);
+    titleFrame.appendChild(titleText);
+    contentInnerFrame.appendChild(titleFrame);
+    contentInnerFrame.appendChild(descriptionText);
+    contentFrame.appendChild(colorFrame);
+    contentFrame.appendChild(contentInnerFrame);
+    elementComponent.appendChild(lineElement);
+    elementComponent.appendChild(contentFrame);
     return elementComponent;
 });
-let container = null;
+const createInstanceOfComponent = (mainComponent, options) => {
+    const { title, colorInRgb, colorInHex, offsetTop } = options;
+    const elementComponent = mainComponent.createInstance();
+    elementComponent.y = offsetTop;
+    const titleElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Title');
+    const colorElement = elementComponent.findOne((n) => n.type === 'FRAME' && n.name === 'Color');
+    const badgeElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Badge');
+    colorElement.fills = [{ type: 'SOLID', color: colorInRgb }];
+    titleElement.deleteCharacters(0, titleElement.characters.length);
+    titleElement.insertCharacters(0, title);
+    badgeElement.deleteCharacters(0, badgeElement.characters.length);
+    badgeElement.insertCharacters(0, colorInHex);
+    return elementComponent;
+};
+const container = [];
 const range = [-4, 5];
-const createPallete = (el) => __awaiter(this, void 0, void 0, function* () {
+const createPallete = (el, index) => __awaiter(this, void 0, void 0, function* () {
     var e_1, _a;
     if ('fills' in el) {
         const { r, g, b } = el.fills[0].color;
         const { h, s, l } = rgbToHsl({ r, g, b });
         const palette = colorLuminance({ h, s, l }, range);
-        container = figma.createFrame();
-        container.name = el.name;
-        container.resizeWithoutConstraints(1216, 128 * palette.length);
-        container.x = 1216 * figma.currentPage.selection.indexOf(el);
+        container.push(figma.createFrame());
+        container[index].name = el.name;
+        container[index].resizeWithoutConstraints(1216, 128 * palette.length);
+        container[index].x = 1216 * figma.currentPage.selection.indexOf(el);
+        const colorInRgb = hslToRgb(Object.assign({}, palette[0]));
+        const style = figma.createPaintStyle();
+        const colorNumber = (palette.length + 1) * 100 - (palette.indexOf(palette[0]) + 1) * 100;
+        style.name = `${el.name} / ${el.name} ${colorNumber}`;
+        style.paints = [{ type: 'SOLID', color: colorInRgb }];
+        const mainComponent = yield createComponent({
+            title: `${el.name} - ${colorNumber}`,
+            colorInRgb: hslToRgb(Object.assign({}, palette[0])),
+            colorInHex: hslToHex(palette[0]),
+            offsetTop: palette.indexOf(palette[0]) * 128,
+        });
+        container[index].appendChild(mainComponent);
+        palette.shift();
         try {
             for (var palette_1 = __asyncValues(palette), palette_1_1; palette_1_1 = yield palette_1.next(), !palette_1_1.done;) {
                 const color = palette_1_1.value;
-                const colorInHex = hslToHex(color);
-                const colorInRgb = hslToRgb({ h: color.h, s: color.s, l: color.l });
-                const styleName = `${el.name} - ${(palette.length + 1) * 100 - (palette.indexOf(color) + 1) * 100}`;
+                const colorInRgb = hslToRgb(Object.assign({}, color));
                 const style = figma.createPaintStyle();
-                style.name = styleName;
+                const colorNumber = (palette.length + 1) * 100 - (palette.indexOf(color) + 1) * 100;
+                style.name = `${el.name} / ${el.name} ${colorNumber}`;
                 style.paints = [{ type: 'SOLID', color: colorInRgb }];
-                const item = yield createItem({
-                    title: styleName,
-                    colorInRgb,
-                    colorInHex,
-                    offsetTop: palette.indexOf(color) * 128,
+                const item = createInstanceOfComponent(mainComponent, {
+                    title: `${el.name} - ${colorNumber}`,
+                    colorInRgb: hslToRgb(Object.assign({}, color)),
+                    colorInHex: hslToHex(color),
+                    offsetTop: (palette.indexOf(color) + 1) * 128,
                 });
-                container.appendChild(item);
-                container.appendChild(item);
+                container[index].appendChild(item);
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -283,11 +289,18 @@ const createPallete = (el) => __awaiter(this, void 0, void 0, function* () {
         }
     }
 });
-figma.currentPage.selection.forEach((el, index) => __awaiter(this, void 0, void 0, function* () {
-    yield createPallete(el);
-    if (index === figma.currentPage.selection.length - 1) {
-        figma.currentPage.selection = [container];
-        figma.viewport.scrollAndZoomIntoView([container]);
-        figma.closePlugin();
-    }
-}));
+const loadFonts = () => __awaiter(this, void 0, void 0, function* () {
+    yield figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+    yield figma.loadFontAsync({ family: 'IBM Plex Mono', style: 'Regular' });
+});
+const init = () => __awaiter(this, void 0, void 0, function* () {
+    yield loadFonts();
+    figma.currentPage.selection.forEach((el, index) => {
+        createPallete(el, index);
+    });
+});
+init().finally(() => {
+    figma.currentPage.selection = container;
+    figma.viewport.scrollAndZoomIntoView(container);
+    figma.closePlugin();
+});
