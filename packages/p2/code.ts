@@ -1,7 +1,7 @@
 const hslToHex = ({ h, s, l }: HSL) => {
   l /= 100
   const a = (s * Math.min(l, 1 - l)) / 100
-  const f = (n) => {
+  const f = (n: number) => {
     const k = (n + h / 30) % 12
     const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
     return Math.round(255 * color)
@@ -48,8 +48,8 @@ const hslToRgb = ({ h, s, l }: HSL) => {
 const rgbToHsl = ({ r, g, b }: RGB) => {
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
-  let h
-  let s
+  let h: number
+  let s: number
   const l = (max + min) / 2
 
   if (max === min) {
