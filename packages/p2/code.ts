@@ -265,7 +265,15 @@ const createInstanceOfComponent = (
 const getColorNumber = (length: number, index: number) => (length + 1) * 100 - (index + 1) * 100
 
 const findTileComponent = () => {
-  return figma.currentPage.findOne((n) => n.type === 'COMPONENT' && n.name === 'DS_Color_Tile') as ComponentNode
+  return figma.root.findOne((n) => n.type === 'COMPONENT' && n.name === 'DS_Color_Tile') as ComponentNode
+}
+
+const createStyle = ({ name, color, colorNumber }: { name: string; color: HSL; colorNumber: number }) => {
+  const colorStyle = figma.createPaintStyle()
+  colorStyle.name = `${name} / ${name} — ${colorNumber}`
+  colorStyle.paints = [{ type: 'SOLID', color: hslToRgb({ ...color }) }]
+
+  return colorStyle
 }
 
 const containers: Array<FrameNode> = []
@@ -282,14 +290,12 @@ const createPallete = async (el: SceneNode, index: number) => {
     containers[index].resizeWithoutConstraints(1216, 128 * palette.length)
     const indexOfFrame = figma.currentPage.selection.indexOf(el)
     containers[index].x = 1216 * indexOfFrame + 35 * indexOfFrame
-
-    const colorInRgb = hslToRgb({ ...palette[0] })
-    const colorStyle = figma.createPaintStyle()
     const colorNumber = getColorNumber(palette.length, palette.indexOf(palette[0]))
-    colorStyle.name = `${el.name} / ${el.name} — ${colorNumber}`
-    colorStyle.paints = [{ type: 'SOLID', color: colorInRgb }]
 
     const componentFinded = findTileComponent()
+    if (!componentFinded) {
+      createStyle({ name: el.name, color: palette[0], colorNumber })
+    }
 
     const mainComponent =
       componentFinded ??
@@ -304,11 +310,8 @@ const createPallete = async (el: SceneNode, index: number) => {
     }
 
     for await (const color of palette) {
-      const colorInRgb = hslToRgb({ ...color })
-      const style = figma.createPaintStyle()
       const colorNumber = getColorNumber(palette.length, palette.indexOf(color))
-      style.name = `${el.name} / ${el.name} ${colorNumber}`
-      style.paints = [{ type: 'SOLID', color: colorInRgb }]
+      createStyle({ name: el.name, color, colorNumber })
 
       const item = createInstanceOfComponent(mainComponent, {
         title: `${el.name} - ${colorNumber}`,

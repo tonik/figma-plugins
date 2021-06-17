@@ -238,7 +238,13 @@ const createInstanceOfComponent = (mainComponent, options) => {
 };
 const getColorNumber = (length, index) => (length + 1) * 100 - (index + 1) * 100;
 const findTileComponent = () => {
-    return figma.currentPage.findOne((n) => n.type === 'COMPONENT' && n.name === 'DS_Color_Tile');
+    return figma.root.findOne((n) => n.type === 'COMPONENT' && n.name === 'DS_Color_Tile');
+};
+const createStyle = ({ name, color, colorNumber }) => {
+    const colorStyle = figma.createPaintStyle();
+    colorStyle.name = `${name} / ${name} — ${colorNumber}`;
+    colorStyle.paints = [{ type: 'SOLID', color: hslToRgb(Object.assign({}, color)) }];
+    return colorStyle;
 };
 const containers = [];
 const range = [-4, 5];
@@ -254,12 +260,11 @@ const createPallete = (el, index) => __awaiter(this, void 0, void 0, function* (
         containers[index].resizeWithoutConstraints(1216, 128 * palette.length);
         const indexOfFrame = figma.currentPage.selection.indexOf(el);
         containers[index].x = 1216 * indexOfFrame + 35 * indexOfFrame;
-        const colorInRgb = hslToRgb(Object.assign({}, palette[0]));
-        const colorStyle = figma.createPaintStyle();
         const colorNumber = getColorNumber(palette.length, palette.indexOf(palette[0]));
-        colorStyle.name = `${el.name} / ${el.name} — ${colorNumber}`;
-        colorStyle.paints = [{ type: 'SOLID', color: colorInRgb }];
         const componentFinded = findTileComponent();
+        if (!componentFinded) {
+            createStyle({ name: el.name, color: palette[0], colorNumber });
+        }
         const mainComponent = componentFinded !== null && componentFinded !== void 0 ? componentFinded : (yield createComponent({
             title: `${el.name} - ${colorNumber}`,
             color: palette[0],
@@ -271,11 +276,8 @@ const createPallete = (el, index) => __awaiter(this, void 0, void 0, function* (
         try {
             for (var palette_1 = __asyncValues(palette), palette_1_1; palette_1_1 = yield palette_1.next(), !palette_1_1.done;) {
                 const color = palette_1_1.value;
-                const colorInRgb = hslToRgb(Object.assign({}, color));
-                const style = figma.createPaintStyle();
                 const colorNumber = getColorNumber(palette.length, palette.indexOf(color));
-                style.name = `${el.name} / ${el.name} ${colorNumber}`;
-                style.paints = [{ type: 'SOLID', color: colorInRgb }];
+                createStyle({ name: el.name, color, colorNumber });
                 const item = createInstanceOfComponent(mainComponent, {
                     title: `${el.name} - ${colorNumber}`,
                     color,
