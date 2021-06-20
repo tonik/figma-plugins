@@ -1,15 +1,14 @@
-const hslToHex = ({ h, s, l }: HSL) => {
-  l /= 100
-  const a = (s * Math.min(l, 1 - l)) / 100
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
-    return Math.round(255 * color)
-      .toString(16)
-      .padStart(2, '0')
-  }
+const componentToHex = (c: number) => {
+  const hex = c.toString(16)
+  return hex.length === 1 ? '0' + hex : hex
+}
 
-  return `#${f(0)}${f(8)}${f(4)}`
+const rgbToHex = ({ r, g, b }: RGB) => {
+  r = Math.round(r * 255)
+  g = Math.round(g * 255)
+  b = Math.round(b * 255)
+  console.log(r)
+  return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b)
 }
 
 const hslToRgb = ({ h, s, l }: HSL) => {
@@ -98,6 +97,10 @@ const colorLuminance = ({ h, s, l }: HSL, range: Array<number>) => {
   return colors
 }
 
+const isSolidPaint = (paints: Paint): paints is SolidPaint => {
+  return (paints as SolidPaint).color !== undefined
+}
+
 const createColorBadge = ({ text, color }: { text: string; color: RGB }) => {
   const badgeText = figma.createText()
   badgeText.name = 'Badge'
@@ -123,11 +126,13 @@ const createColorBadge = ({ text, color }: { text: string; color: RGB }) => {
   return badgeFrame
 }
 
-const createColorFrame = ({ color }: { color: RGB }) => {
+const createColorFrame = ({ style }: { style: PaintStyle }) => {
   const colorFrame = figma.createFrame()
   colorFrame.name = 'Color'
   colorFrame.resizeWithoutConstraints(488, 128)
-  colorFrame.fills = [{ type: 'SOLID', color }]
+  if (isSolidPaint(style.paints[0])) {
+    colorFrame.fillStyleId = style.id
+  }
 
   return colorFrame
 }
@@ -212,18 +217,18 @@ const createElementComponent = () => {
   return elementComponent
 }
 
-const createComponent = async ({ title, color }: { title: string; color: HSL }) => {
+const createComponent = async ({ title, style }: { title: string; style: PaintStyle }) => {
   const elementComponent = createElementComponent()
   const contentFrame = createContentFrame()
   const contentInnerFrame = createContentInnerFrame()
   const descriptionText = createDescriptionText({ text: 'Short information about usage.' })
   const titleFrame = createTitleFrame()
   const badgeText = createColorBadge({
-    text: hslToHex(color),
+    text: isSolidPaint(style.paints[0]) ? rgbToHex(style.paints[0].color) : '',
     color: { r: 0.9294117647, g: 0.9294117647, b: 0.9843137255 },
   })
   const titleText = createTitleText({ text: title })
-  const colorFrame = createColorFrame({ color: hslToRgb({ ...color }) })
+  const colorFrame = createColorFrame({ style })
   const lineElement = createLineElement()
 
   titleFrame.appendChild(badgeText)
@@ -245,19 +250,23 @@ const createInstanceOfComponent = (
   mainComponent: ComponentNode,
   options: {
     title: string
-    color: HSL
+    style: PaintStyle
   }
 ) => {
-  const { title, color } = options
+  const { title, style } = options
   const elementComponent = mainComponent.createInstance()
   const titleElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Title') as TextNode
   const colorElement = elementComponent.findOne((n) => n.type === 'FRAME' && n.name === 'Color') as FrameNode
   const badgeElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Badge') as TextNode
-  colorElement.fills = [{ type: 'SOLID', color: hslToRgb({ ...color }) }]
-  titleElement.deleteCharacters(0, titleElement.characters.length)
-  titleElement.insertCharacters(0, title)
-  badgeElement.deleteCharacters(0, badgeElement.characters.length)
-  badgeElement.insertCharacters(0, hslToHex(color))
+  console.log('ttt', style.paints[0])
+
+  if (isSolidPaint(style.paints[0])) {
+    colorElement.fillStyleId = style.id
+    titleElement.deleteCharacters(0, titleElement.characters.length)
+    titleElement.insertCharacters(0, title)
+    badgeElement.deleteCharacters(0, badgeElement.characters.length)
+    badgeElement.insertCharacters(0, rgbToHex(style.paints[0].color))
+  }
 
   return elementComponent
 }
@@ -293,15 +302,13 @@ const createPallete = async (el: SceneNode, index: number) => {
     const colorNumber = getColorNumber(palette.length, palette.indexOf(palette[0]))
 
     const componentFinded = findTileComponent()
-    if (!componentFinded) {
-      createStyle({ name: el.name, color: palette[0], colorNumber })
-    }
+    const colorStyle = componentFinded ? null : createStyle({ name: el.name, color: palette[0], colorNumber })
 
     const mainComponent =
       componentFinded ??
       (await createComponent({
         title: `${el.name} - ${colorNumber}`,
-        color: palette[0],
+        style: colorStyle,
       }))
 
     if (!componentFinded) {
@@ -311,11 +318,11 @@ const createPallete = async (el: SceneNode, index: number) => {
 
     for await (const color of palette) {
       const colorNumber = getColorNumber(palette.length, palette.indexOf(color))
-      createStyle({ name: el.name, color, colorNumber })
+      const colorStyle = createStyle({ name: el.name, color, colorNumber })
 
       const item = createInstanceOfComponent(mainComponent, {
         title: `${el.name} - ${colorNumber}`,
-        color,
+        style: colorStyle,
       })
 
       containers[index].appendChild(item)

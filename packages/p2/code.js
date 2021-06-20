@@ -14,17 +14,16 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
-const hslToHex = ({ h, s, l }) => {
-    l /= 100;
-    const a = (s * Math.min(l, 1 - l)) / 100;
-    const f = (n) => {
-        const k = (n + h / 30) % 12;
-        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-        return Math.round(255 * color)
-            .toString(16)
-            .padStart(2, '0');
-    };
-    return `#${f(0)}${f(8)}${f(4)}`;
+const componentToHex = (c) => {
+    const hex = c.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+};
+const rgbToHex = ({ r, g, b }) => {
+    r = Math.round(r * 255);
+    g = Math.round(g * 255);
+    b = Math.round(b * 255);
+    console.log(r);
+    return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
 };
 const hslToRgb = ({ h, s, l }) => {
     h /= 360;
@@ -106,6 +105,9 @@ const colorLuminance = ({ h, s, l }, range) => {
     }
     return colors;
 };
+const isSolidPaint = (paints) => {
+    return paints.color !== undefined;
+};
 const createColorBadge = ({ text, color }) => {
     const badgeText = figma.createText();
     badgeText.name = 'Badge';
@@ -128,11 +130,13 @@ const createColorBadge = ({ text, color }) => {
     badgeFrame.appendChild(badgeText);
     return badgeFrame;
 };
-const createColorFrame = ({ color }) => {
+const createColorFrame = ({ style }) => {
     const colorFrame = figma.createFrame();
     colorFrame.name = 'Color';
     colorFrame.resizeWithoutConstraints(488, 128);
-    colorFrame.fills = [{ type: 'SOLID', color }];
+    if (isSolidPaint(style.paints[0])) {
+        colorFrame.fillStyleId = style.id;
+    }
     return colorFrame;
 };
 const createTitleFrame = () => {
@@ -200,18 +204,18 @@ const createElementComponent = () => {
     elementComponent.resizeWithoutConstraints(1216, 128);
     return elementComponent;
 };
-const createComponent = ({ title, color }) => __awaiter(this, void 0, void 0, function* () {
+const createComponent = ({ title, style }) => __awaiter(this, void 0, void 0, function* () {
     const elementComponent = createElementComponent();
     const contentFrame = createContentFrame();
     const contentInnerFrame = createContentInnerFrame();
     const descriptionText = createDescriptionText({ text: 'Short information about usage.' });
     const titleFrame = createTitleFrame();
     const badgeText = createColorBadge({
-        text: hslToHex(color),
+        text: isSolidPaint(style.paints[0]) ? rgbToHex(style.paints[0].color) : '',
         color: { r: 0.9294117647, g: 0.9294117647, b: 0.9843137255 },
     });
     const titleText = createTitleText({ text: title });
-    const colorFrame = createColorFrame({ color: hslToRgb(Object.assign({}, color)) });
+    const colorFrame = createColorFrame({ style });
     const lineElement = createLineElement();
     titleFrame.appendChild(badgeText);
     titleFrame.appendChild(titleText);
@@ -224,16 +228,19 @@ const createComponent = ({ title, color }) => __awaiter(this, void 0, void 0, fu
     return elementComponent;
 });
 const createInstanceOfComponent = (mainComponent, options) => {
-    const { title, color } = options;
+    const { title, style } = options;
     const elementComponent = mainComponent.createInstance();
     const titleElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Title');
     const colorElement = elementComponent.findOne((n) => n.type === 'FRAME' && n.name === 'Color');
     const badgeElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Badge');
-    colorElement.fills = [{ type: 'SOLID', color: hslToRgb(Object.assign({}, color)) }];
-    titleElement.deleteCharacters(0, titleElement.characters.length);
-    titleElement.insertCharacters(0, title);
-    badgeElement.deleteCharacters(0, badgeElement.characters.length);
-    badgeElement.insertCharacters(0, hslToHex(color));
+    console.log('ttt', style.paints[0]);
+    if (isSolidPaint(style.paints[0])) {
+        colorElement.fillStyleId = style.id;
+        titleElement.deleteCharacters(0, titleElement.characters.length);
+        titleElement.insertCharacters(0, title);
+        badgeElement.deleteCharacters(0, badgeElement.characters.length);
+        badgeElement.insertCharacters(0, rgbToHex(style.paints[0].color));
+    }
     return elementComponent;
 };
 const getColorNumber = (length, index) => (length + 1) * 100 - (index + 1) * 100;
@@ -262,12 +269,10 @@ const createPallete = (el, index) => __awaiter(this, void 0, void 0, function* (
         containers[index].x = 1216 * indexOfFrame + 35 * indexOfFrame;
         const colorNumber = getColorNumber(palette.length, palette.indexOf(palette[0]));
         const componentFinded = findTileComponent();
-        if (!componentFinded) {
-            createStyle({ name: el.name, color: palette[0], colorNumber });
-        }
+        const colorStyle = componentFinded ? null : createStyle({ name: el.name, color: palette[0], colorNumber });
         const mainComponent = componentFinded !== null && componentFinded !== void 0 ? componentFinded : (yield createComponent({
             title: `${el.name} - ${colorNumber}`,
-            color: palette[0],
+            style: colorStyle,
         }));
         if (!componentFinded) {
             containers[index].appendChild(mainComponent);
@@ -277,10 +282,10 @@ const createPallete = (el, index) => __awaiter(this, void 0, void 0, function* (
             for (var palette_1 = __asyncValues(palette), palette_1_1; palette_1_1 = yield palette_1.next(), !palette_1_1.done;) {
                 const color = palette_1_1.value;
                 const colorNumber = getColorNumber(palette.length, palette.indexOf(color));
-                createStyle({ name: el.name, color, colorNumber });
+                const colorStyle = createStyle({ name: el.name, color, colorNumber });
                 const item = createInstanceOfComponent(mainComponent, {
                     title: `${el.name} - ${colorNumber}`,
-                    color,
+                    style: colorStyle,
                 });
                 containers[index].appendChild(item);
             }
