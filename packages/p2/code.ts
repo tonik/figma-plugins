@@ -7,7 +7,6 @@ const rgbToHex = ({ r, g, b }: RGB) => {
   r = Math.round(r * 255)
   g = Math.round(g * 255)
   b = Math.round(b * 255)
-  console.log(r)
   return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b)
 }
 
@@ -258,7 +257,6 @@ const createInstanceOfComponent = (
   const titleElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Title') as TextNode
   const colorElement = elementComponent.findOne((n) => n.type === 'FRAME' && n.name === 'Color') as FrameNode
   const badgeElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Badge') as TextNode
-  console.log('ttt', style.paints[0])
 
   if (isSolidPaint(style.paints[0])) {
     colorElement.fillStyleId = style.id

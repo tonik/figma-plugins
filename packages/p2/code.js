@@ -22,7 +22,6 @@ const rgbToHex = ({ r, g, b }) => {
     r = Math.round(r * 255);
     g = Math.round(g * 255);
     b = Math.round(b * 255);
-    console.log(r);
     return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
 };
 const hslToRgb = ({ h, s, l }) => {
@@ -233,7 +232,6 @@ const createInstanceOfComponent = (mainComponent, options) => {
     const titleElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Title');
     const colorElement = elementComponent.findOne((n) => n.type === 'FRAME' && n.name === 'Color');
     const badgeElement = elementComponent.findOne((n) => n.type === 'TEXT' && n.name === 'Badge');
-    console.log('ttt', style.paints[0]);
     if (isSolidPaint(style.paints[0])) {
         colorElement.fillStyleId = style.id;
         titleElement.deleteCharacters(0, titleElement.characters.length);
