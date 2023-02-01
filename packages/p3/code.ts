@@ -26,6 +26,22 @@ type MessageProps =
       type: 'archive'
       payload: never
     }
+
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
 figma.ui.onmessage = ({ type, payload }: MessageProps) => {
   switch (type) {
     case 'change-status':
@@ -134,7 +150,14 @@ const archive = () => {
     const x = Math.min(...yPositions.filter((pos) => pos.y === minY).map((pos) => pos.x))
 
     archivePage.appendChild(el)
-    el.name = `${el.name.replace(/^(🚧|⏰|✅) /, '')} | Archived on ${new Date().toLocaleDateString()}`
+
+    const dateObj = new Date()
+    const day = dateObj.getDay()
+    const month = months[dateObj.getMonth()]
+    const year = dateObj.getFullYear()
+    const formattedDate = `${month} ${day}, ${year}`
+
+    el.name = `${el.name.replace(/^(🚧|⏰|✅) /, '')} | Archived on ${formattedDate}`
     el.y = isFinite(minY) ? minY - el.height - 400 : 0
     el.x = isFinite(x) ? x : 0
   })
