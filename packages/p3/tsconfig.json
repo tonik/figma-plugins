@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "."
+  ],
+  "exclude": ["../../node_modules"],
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["ESNext"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/@figma",
+      "../../node_modules/@types",
+      "../../node_modules/@figma",
+    ]
+  }
+}

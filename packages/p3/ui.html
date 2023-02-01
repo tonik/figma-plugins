@@ -1,0 +1,53 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <select name="type" id="type">
+      <option disabled selected value>Choose a status:</option>
+      <option value="in-progress">🚧 In progress</option>
+      <option value="awaiting-feedback">⏰ Awaiting feedback</option>
+      <option value="done">✅ Done</option>
+    </select>
+    <label for="appearance">Appearance</label>
+    <select name="appearance" id="appearance">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+    <button id="archive">Archive</button>
+  </body>
+  <script>
+    const typeSelect = document.getElementById("type");
+    const archiveBtn = document.getElementById("archive");
+    const appearanceBtn = document.getElementById("appearance")
+
+    typeSelect.addEventListener("change", () => {
+      parent.postMessage({ pluginMessage: {
+        type: "change-status",
+        payload: {
+          status: typeSelect.value,
+          appearance: appearanceBtn.value
+        }
+      } }, '*')
+    });
+  
+    appearanceBtn.addEventListener("change", () => {
+      parent.postMessage({ pluginMessage: {
+        type: "change-status",
+        payload: {
+          status: typeSelect.value,
+          appearance: appearanceBtn.value
+        }
+      } }, '*')
+    });
+    
+    archiveBtn.addEventListener("click", () => {
+      parent.postMessage({ pluginMessage: {
+        type: "archive",
+      } }, '*')
+    });
+  </script>
+</html>

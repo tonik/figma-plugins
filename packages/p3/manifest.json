@@ -1,0 +1,9 @@
+{
+  "name": "p3",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma", "figjam"],
+  "ui": {
+    "main": "ui.html"
+  }
+}

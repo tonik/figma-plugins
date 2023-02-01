@@ -1,0 +1,10 @@
+{
+  "name": "@tonik-figma-plugins/p3",
+  "version": "0.0.1",
+  "main": "./code.ts",
+  "license": "MIT",
+  "scripts": {
+    "start": "tsc -p tsconfig.json -w",
+    "build": "tsc -p tsconfig.json"
+  }
+}
