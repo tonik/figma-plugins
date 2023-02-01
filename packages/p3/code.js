@@ -100,20 +100,21 @@ const changeStatus = ({ status, appearance }) => {
 };
 const archive = () => {
     var _a;
-    console.log('archive');
     const archivePage = (_a = figma.root.findChild((node) => node.name === 'Archive')) !== null && _a !== void 0 ? _a : figma.createPage();
     archivePage.name = 'Archive';
     figma.currentPage.selection.forEach((el) => {
-        const yPositions = archivePage.children.map((child) => ({
+        var _a;
+        const yPositions = (_a = archivePage.children) === null || _a === void 0 ? void 0 : _a.map((child) => ({
             y: child.y,
             x: child.x,
         }));
         const minY = Math.min(...yPositions.map((pos) => pos.y));
         const x = Math.min(...yPositions.filter((pos) => pos.y === minY).map((pos) => pos.x));
+        console.log('isFinite(minY) ? minY - el.height - 400 : 0', isFinite(minY) ? minY - el.height - 400 : 0);
         archivePage.appendChild(el);
         el.name = `${el.name.replace(/^(🚧|⏰|✅) /, '')} | Archived on ${new Date().toLocaleDateString()}`;
-        el.y = minY - el.height - 400;
-        el.x = x;
+        el.y = isFinite(minY) ? minY - el.height - 400 : 0;
+        el.x = isFinite(x) ? x : 0;
     });
 };
 init();

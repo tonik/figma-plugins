@@ -15,10 +15,6 @@ type ChangeStatusPayload = {
 
 const init = async () => {
   figma.showUI(__uiFiles__.main, { width: 400, height: 400 })
-
-  // figma.currentPage.selection.forEach((el) => {
-  //   console.log(el.y)
-  // })
 }
 
 type MessageProps =
@@ -126,12 +122,11 @@ const changeStatus = ({ status, appearance }: ChangeStatusPayload) => {
 }
 
 const archive = () => {
-  console.log('archive')
   const archivePage = figma.root.findChild((node) => node.name === 'Archive') ?? figma.createPage()
   archivePage.name = 'Archive'
 
   figma.currentPage.selection.forEach((el) => {
-    const yPositions = archivePage.children.map((child) => ({
+    const yPositions = archivePage.children?.map((child) => ({
       y: child.y,
       x: child.x,
     }))
@@ -140,8 +135,8 @@ const archive = () => {
 
     archivePage.appendChild(el)
     el.name = `${el.name.replace(/^(🚧|⏰|✅) /, '')} | Archived on ${new Date().toLocaleDateString()}`
-    el.y = minY - el.height - 400
-    el.x = x
+    el.y = isFinite(minY) ? minY - el.height - 400 : 0
+    el.x = isFinite(x) ? x : 0
   })
 }
 
