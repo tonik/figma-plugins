@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const init = () => __awaiter(this, void 0, void 0, function* () {
-    figma.showUI(__uiFiles__.main, { width: 400, height: 400 });
+    figma.showUI(__uiFiles__.main, { width: 240, height: 332 });
 });
 const months = [
     'January',
@@ -25,6 +25,7 @@ const months = [
     'December',
 ];
 figma.ui.onmessage = ({ type, payload }) => {
+    console.log(type, payload);
     switch (type) {
         case 'change-status':
             changeStatus(payload);
@@ -75,7 +76,7 @@ const statusInfo = {
         },
         icon: '⏰',
     },
-    done: {
+    'development-ready': {
         colorSchemes: {
             light: {
                 color: {
@@ -136,3 +137,26 @@ const archive = () => {
     });
 };
 init();
+figma.on('run', ({ parameters }) => {
+    console.log('test');
+    if (parameters) {
+        startPluginWithParameters(parameters);
+    }
+});
+const slugify = (str) => str
+    .toLowerCase()
+    .replace(/[^\w ]+/g, '')
+    .replace(/ +/g, '-')
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+    .replace(/^-/, '');
+function startPluginWithParameters(parameters) {
+    const { workStatus } = parameters;
+    changeStatus({
+        status: slugify(workStatus),
+        appearance: 'light',
+    });
+    figma.closePlugin();
+}
+figma.parameters.on('input', ({ query, result }) => {
+    result.setSuggestions(['🚧  In progress', '⏰  Awaiting feedback', '✅  Development ready'].filter((s) => s.includes(query)));
+});

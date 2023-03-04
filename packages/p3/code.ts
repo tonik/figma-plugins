@@ -1,4 +1,4 @@
-type Status = 'in-progress' | 'awaiting-feedback' | 'done'
+type Status = 'in-progress' | 'awaiting-feedback' | 'development-ready'
 type Appearance = 'dark' | 'light'
 type StatusInfo = {
   icon: string
@@ -14,7 +14,7 @@ type ChangeStatusPayload = {
 }
 
 const init = async () => {
-  figma.showUI(__uiFiles__.main, { width: 400, height: 400 })
+  figma.showUI(__uiFiles__.main, { width: 240, height: 332 })
 }
 
 type MessageProps =
@@ -26,6 +26,10 @@ type MessageProps =
       type: 'archive'
       payload: never
     }
+
+interface PluginParameters extends ParameterValues {
+  workStatus?: Status
+}
 
 const months = [
   'January',
@@ -43,6 +47,7 @@ const months = [
 ]
 
 figma.ui.onmessage = ({ type, payload }: MessageProps) => {
+  console.log(type, payload)
   switch (type) {
     case 'change-status':
       changeStatus(payload)
@@ -96,7 +101,7 @@ const statusInfo: {
     },
     icon: '⏰',
   },
-  done: {
+  'development-ready': {
     colorSchemes: {
       light: {
         color: {
@@ -164,3 +169,34 @@ const archive = () => {
 }
 
 init()
+
+figma.on('run', ({ parameters }: RunEvent) => {
+  console.log('test')
+  if (parameters) {
+    startPluginWithParameters(parameters)
+  }
+})
+
+const slugify = (str: string) =>
+  str
+    .toLowerCase()
+    .replace(/[^\w ]+/g, '')
+    .replace(/ +/g, '-')
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+    .replace(/^-/, '')
+
+function startPluginWithParameters(parameters: PluginParameters) {
+  const { workStatus } = parameters
+  changeStatus({
+    status: slugify(workStatus) as Status,
+    appearance: 'light',
+  })
+
+  figma.closePlugin()
+}
+
+figma.parameters.on('input', ({ query, result }) => {
+  result.setSuggestions(
+    ['🚧  In progress', '⏰  Awaiting feedback', '✅  Development ready'].filter((s) => s.includes(query))
+  )
+})

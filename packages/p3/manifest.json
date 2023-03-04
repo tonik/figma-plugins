@@ -1,9 +1,17 @@
 {
-  "name": "p3",
+  "name": "Status",
+  "id": "1213881116798748502",
   "api": "1.0.0",
   "main": "code.js",
   "editorType": ["figma", "figjam"],
   "ui": {
     "main": "ui.html"
-  }
+  },
+  "parameters": [
+    {
+      "name": "Work status",
+      "key": "workStatus",
+      "description": "What is the work status?"
+    }
+  ]
 }

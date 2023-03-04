@@ -1,53 +1,236 @@
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <select name="type" id="type">
-      <option disabled selected value>Choose a status:</option>
-      <option value="in-progress">🚧 In progress</option>
-      <option value="awaiting-feedback">⏰ Awaiting feedback</option>
-      <option value="done">✅ Done</option>
-    </select>
-    <label for="appearance">Appearance</label>
-    <select name="appearance" id="appearance">
-      <option value="light">Light</option>
-      <option value="dark">Dark</option>
-    </select>
-    <button id="archive">Archive</button>
-  </body>
-  <script>
-    const typeSelect = document.getElementById("type");
-    const archiveBtn = document.getElementById("archive");
-    const appearanceBtn = document.getElementById("appearance")
+<style>
+  body {
+    margin: 0;
+    padding: 0 16px;
+  }
 
-    typeSelect.addEventListener("change", () => {
-      parent.postMessage({ pluginMessage: {
-        type: "change-status",
-        payload: {
-          status: typeSelect.value,
-          appearance: appearanceBtn.value
-        }
-      } }, '*')
-    });
-  
-    appearanceBtn.addEventListener("change", () => {
-      parent.postMessage({ pluginMessage: {
-        type: "change-status",
-        payload: {
-          status: typeSelect.value,
-          appearance: appearanceBtn.value
-        }
-      } }, '*')
-    });
-    
-    archiveBtn.addEventListener("click", () => {
-      parent.postMessage({ pluginMessage: {
-        type: "archive",
-      } }, '*')
-    });
-  </script>
-</html>
+  .label {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 11px;
+    line-height: 16px;
+    align-items: center;
+    letter-spacing: 0.005em;
+    color: rgba(0, 0, 0, 0.8);
+    padding: 8px 0;
+    cursor: pointer;
+  }
+
+  .label::before {
+    content: "";
+    display: block;
+    width: 12px;
+    height: 12px;
+  }
+
+  input[type="radio"]:checked + .label {
+    font-weight: 500;
+  }
+
+  .label--light::before {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik02IDBDNi4yMzExOCAwIDYuNDE4NiAwLjE4NzQxOCA2LjQxODYgMC40MTg2MDVWMi4wOTMwMkM2LjQxODYgMi4zMjQyMSA2LjIzMTE4IDIuNTExNjMgNiAyLjUxMTYzQzUuNzY4ODIgMi41MTE2MyA1LjU4MTQgMi4zMjQyMSA1LjU4MTQgMi4wOTMwMlYwLjQxODYwNUM1LjU4MTQgMC4xODc0MTggNS43Njg4MiAwIDYgMFpNNiA5LjQ4ODM3QzYuMjMxMTggOS40ODgzNyA2LjQxODYgOS42NzU4IDYuNDE4NiA5LjkwNjk4VjExLjU4MTRDNi40MTg2IDExLjgxMjYgNi4yMzExOCAxMiA2IDEyQzUuNzY4ODIgMTIgNS41ODE0IDExLjgxMjYgNS41ODE0IDExLjU4MTRWOS45MDY5OEM1LjU4MTQgOS42NzU4IDUuNzY4ODIgOS40ODgzNyA2IDkuNDg4MzdaTTYgNC4xODYwNUM0Ljk5ODIgNC4xODYwNSA0LjE4NjA1IDQuOTk4MiA0LjE4NjA1IDZDNC4xODYwNSA3LjAwMTggNC45OTgyIDcuODEzOTUgNiA3LjgxMzk1QzcuMDAxOCA3LjgxMzk1IDcuODEzOTUgNy4wMDE4IDcuODEzOTUgNkM3LjgxMzk1IDQuOTk4MiA3LjAwMTggNC4xODYwNSA2IDQuMTg2MDVaTTMuMzQ4ODQgNkMzLjM0ODg0IDQuNTM1OCA0LjUzNTggMy4zNDg4NCA2IDMuMzQ4ODRDNy40NjQyMiAzLjM0ODg0IDguNjUxMTYgNC41MzU4IDguNjUxMTYgNkM4LjY1MTE2IDcuNDY0MjIgNy40NjQyMiA4LjY1MTE2IDYgOC42NTExNkM0LjUzNTggOC42NTExNiAzLjM0ODg0IDcuNDY0MjIgMy4zNDg4NCA2Wk0wLjQxODYwNSA1LjU4MTRDMC4xODc0MTggNS41ODE0IDAgNS43Njg4MiAwIDZDMCA2LjIzMTE4IDAuMTg3NDE4IDYuNDE4NiAwLjQxODYwNSA2LjQxODZIMi4wOTMwMkMyLjMyNDIxIDYuNDE4NiAyLjUxMTYzIDYuMjMxMTggMi41MTE2MyA2QzIuNTExNjMgNS43Njg4MiAyLjMyNDIxIDUuNTgxNCAyLjA5MzAyIDUuNTgxNEgwLjQxODYwNVpNOS45MDY5OCA1LjU4MTRDOS42NzU4IDUuNTgxNCA5LjQ4ODM3IDUuNzY4ODIgOS40ODgzNyA2QzkuNDg4MzcgNi4yMzExOCA5LjY3NTggNi40MTg2IDkuOTA2OTggNi40MTg2SDExLjU4MTRDMTEuODEyNiA2LjQxODYgMTIgNi4yMzExOCAxMiA2QzEyIDUuNzY4ODIgMTEuODEyNiA1LjU4MTQgMTEuNTgxNCA1LjU4MTRIOS45MDY5OFpNMS43NTczNyAxLjc1NzM3QzEuOTIwODUgMS41OTM5IDIuMTg1ODkgMS41OTM5IDIuMzQ5MzcgMS43NTczN0wzLjUzMzM2IDIuOTQxMzdDMy42OTY4NCAzLjEwNDg0IDMuNjk2ODQgMy4zNjk4OCAzLjUzMzM2IDMuNTMzMzZDMy4zNjk4OCAzLjY5Njg0IDMuMTA0ODQgMy42OTY4NCAyLjk0MTM3IDMuNTMzMzZMMS43NTczNyAyLjM0OTM3QzEuNTkzOSAyLjE4NTg5IDEuNTkzOSAxLjkyMDg1IDEuNzU3MzcgMS43NTczN1pNOC40NjY2NCA4LjQ2NjY0QzguNjMwMTIgOC4zMDMxNiA4Ljg5NTE4IDguMzAzMTYgOS4wNTg2NiA4LjQ2NjY0TDEwLjI0MjYgOS42NTA2OEMxMC40MDYxIDkuODE0MTYgMTAuNDA2MSAxMC4wNzkyIDEwLjI0MjYgMTAuMjQyNkMxMC4wNzkyIDEwLjQwNjEgOS44MTQxNiAxMC40MDYxIDkuNjUwNjggMTAuMjQyNkw4LjQ2NjY0IDkuMDU4NjZDOC4zMDMxNiA4Ljg5NTE4IDguMzAzMTYgOC42MzAxMiA4LjQ2NjY0IDguNDY2NjRaTTEuNzU3MzcgOS42NTA2MkMxLjU5MzkgOS44MTQxIDEuNTkzOSAxMC4wNzkyIDEuNzU3MzcgMTAuMjQyNkMxLjkyMDg1IDEwLjQwNjEgMi4xODU4OSAxMC40MDYxIDIuMzQ5MzcgMTAuMjQyNkwzLjUzMzM2IDkuMDU4NjZDMy42OTY4NCA4Ljg5NTE4IDMuNjk2ODQgOC42MzAxMiAzLjUzMzM2IDguNDY2NjRDMy4zNjk4OCA4LjMwMzE2IDMuMTA0ODQgOC4zMDMxNiAyLjk0MTM3IDguNDY2NjRMMS43NTczNyA5LjY1MDYyWk04LjQ2NjY0IDIuOTQxMzRDOC4zMDMxNiAzLjEwNDgxIDguMzAzMTYgMy4zNjk4NiA4LjQ2NjY0IDMuNTMzMzRDOC42MzAxMiAzLjY5NjgxIDguODk1MTggMy42OTY4MSA5LjA1ODY2IDMuNTMzMzRMMTAuMjQyNiAyLjM0OTM0QzEwLjQwNjEgMi4xODU4NyAxMC40MDYxIDEuOTIwODIgMTAuMjQyNiAxLjc1NzM1QzEwLjA3OTIgMS41OTM4NyA5LjgxNDE2IDEuNTkzODcgOS42NTA2OCAxLjc1NzM1TDguNDY2NjQgMi45NDEzNFoiIGZpbGw9IiMyMjI4MkYiLz4KPC9zdmc+Cg==);
+}
+
+  .label--dark::before {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik01LjgwMzAyIDEuMTkxNzNDNS44ODQ2NyAxLjMyODA1IDUuODczMDggMS40OTkwMyA1Ljc3MzY1IDEuNjIzNjZDNS4yNjkwOCAyLjI1NjI0IDQuOTY4ODIgMy4wNTAyOSA0Ljk2ODgyIDMuOTEzNzNDNC45Njg4MiA1Ljk3NzI5IDYuNjg2NDggNy42NTAxMiA4LjgwNTM1IDcuNjUwMTJDOS4zODg2MSA3LjY1MDEyIDkuOTQwMzggNy41MjM2NSAxMC40MzQ0IDcuMjk3NjZDMTAuNTgxMiA3LjIzMDUxIDEwLjc1NTEgNy4yNTcxIDEwLjg3MzcgNy4zNjQ3NkMxMC45OTIzIDcuNDcyNDcgMTEuMDMxOCA3LjYzOTYxIDEwLjk3MzMgNy43ODY5QzEwLjIyNzEgOS42NjYxMyA4LjM1Mzc1IDExIDYuMTU5NDcgMTFDMy4zMDk5NyAxMSAxIDguNzUwMzIgMSA1Ljk3NTE4QzEgMy40NTAzNSAyLjkxMTcyIDEuMzYxMDMgNS40MDI0MyAxLjAwNDEzQzUuNTYyNzcgMC45ODExNTYgNS43MjEzNyAxLjA1NTQyIDUuODAzMDIgMS4xOTE3M1pNNC42MTI2IDEuOTk3OTNDMi45NjUwOCAyLjYwNjAxIDEuNzkzNzYgNC4xNTc2MyAxLjc5Mzc2IDUuOTc1MThDMS43OTM3NiA4LjMyMzM5IDMuNzQ4MzYgMTAuMjI3IDYuMTU5NDcgMTAuMjI3QzcuNjgxMTcgMTAuMjI3IDkuMDIxNjggOS40Njg2NCA5LjgwMzIyIDguMzE4MTRDOS40ODE2NCA4LjM4Njk0IDkuMTQ3NzMgOC40MjMxNyA4LjgwNTM1IDguNDIzMTdDNi4yNDgxMSA4LjQyMzE3IDQuMTc1MDYgNi40MDQyMiA0LjE3NTA2IDMuOTEzNzNDNC4xNzUwNiAzLjIyOTAyIDQuMzMxOTYgMi41Nzk1MiA0LjYxMjYgMS45OTc5M1oiIGZpbGw9IiMyMjI4MkYiLz4KPC9zdmc+Cg==);
+  }
+
+  .label--in-progress::before {
+    content: "🚧";
+  }
+
+  .label--awaiting-feedback::before {
+    content: "⏰";
+  }
+
+  .label--development-ready::before {
+    content: "✅";
+  }
+
+  .fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+    margin: 16px 0 0;
+  }
+
+  .legend {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 16px;
+    color: #000000;
+    margin: 0 0 6px;
+  }
+
+  .input-wrapper {
+    display: grid;
+    position: relative;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .radio-input {
+    position: relative;
+    width: 12px;
+    height: 12px;
+    appearance: none;
+    margin: 0;
+  }
+
+  .radio-input::before {
+    content: "";
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .radio-input:checked:before {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0zLjE3NjQ3IDQuODIzNzdMNS4wNTg4MiA2LjcwNjEzTDguODIzNTMgMi45NDE0MUwxMCA0LjExNzg4TDUuMDU4ODIgOS4wNTkwOEwyIDYuMDAwMjRMMy4xNzY0NyA0LjgyMzc3WiIgZmlsbD0iYmxhY2siIGZpbGwtb3BhY2l0eT0iMC44Ii8+Cjwvc3ZnPgo=");
+  }
+
+  .input-wrapper:hover::before {
+    content: "";
+    width: calc(100% + 32px);
+    top: 0;
+    left: -16px;
+    height: 100%;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.05);
+    pointer-events: none;
+  }
+
+  .button {
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    border-radius: 3px;
+    background: none;
+    width: 100%;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.005em;
+    color: rgba(0, 0, 0, 0.8);
+    cursor: pointer;
+  }
+
+  .divider {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 16px 0;
+    position: relative;
+    overflow: visible;
+  }
+
+  .divider::before {
+    content: "or";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background-color: #fff;
+    transform: translate(-50%, -50%);
+    padding: 8px;
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.005em;
+    color: rgba(0, 0, 0, 0.3);
+  }
+</style>
+
+
+<fieldset class="fieldset">
+  <legend class="legend">Work status</legend>
+
+  <div class="input-wrapper">
+    <input type="radio" id="in-progress" name="type" value="in-progress" class="radio-input" checked="true" />
+    <label for="in-progress" class="label label--in-progress">In progress</label>
+  </div>
+  <div class="input-wrapper">
+    <input type="radio" id="awaiting-feedback" name="type" value="awaiting-feedback" class="radio-input" />
+    <label for="awaiting-feedback" class="label label--awaiting-feedback">Awaiting feedback</label>
+  </div>
+  <div class="input-wrapper">
+    <input type="radio" id="development-ready" name="type" value="development-ready" class="radio-input" />
+    <label for="development-ready" class="label label--development-ready">Development ready</label>
+  </div>
+</fieldset>
+
+<fieldset class="fieldset">
+  <legend class="legend">Color mode</legend>
+
+  <div class="input-wrapper">
+    <input type="radio" id="light" name="appearance" value="light" checked="true" class="radio-input" />
+    <label for="light" class="label label--light">Light</label>
+  </div>
+  <div class="input-wrapper">
+    <input type="radio" id="dark" name="appearance" value="dark" class="radio-input" />
+    <label for="dark" class="label label--dark">Dark</label>
+  </div>
+</fieldset>
+
+<hr class="divider" />
+
+<button id="archive" class="button">Archive</button>
+</body>
+<script>
+  const typeInputs = document.querySelectorAll('input[name="type"]')
+  const appearanceInputs = document.querySelectorAll('input[name="appearance"]')
+  const archiveBtn = document.getElementById('archive')
+
+  typeInputs.forEach((elem) => {
+    elem.addEventListener('change', () => {
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: 'change-status',
+            payload: {
+              status: elem.value,
+              appearance: document.querySelector('input[name="appearance"]:checked').value,
+            },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  appearanceInputs.forEach((elem) => {
+    elem.addEventListener('change', () => {
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: 'change-status',
+            payload: {
+              status: document.querySelector('input[name="type"]:checked')?.value,
+              appearance: elem.value,
+            },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  archiveBtn.addEventListener('click', () => {
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'archive',
+        },
+      },
+      '*'
+    )
+  })
+</script>
