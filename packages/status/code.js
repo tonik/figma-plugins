@@ -103,6 +103,10 @@ const isFrame = (node) => {
     return node.type === 'FRAME';
 };
 const changeStatus = ({ status, appearance }) => {
+    if (figma.currentPage.selection.length === 0) {
+        figma.notify('Please select a section or frame.');
+        return;
+    }
     figma.currentPage.selection.forEach((el) => {
         el.name = `${statusInfo[status].icon} ${el.name.replace(/^(🚧|⏰|✅) /, '')}`;
         if (isSection(el) || isFrame(el)) {
