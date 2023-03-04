@@ -1,5 +1,5 @@
 {
-  "name": "@tonik-figma-plugins/p3",
+  "name": "@tonik-figma-plugins/status",
   "version": "0.0.1",
   "main": "./code.ts",
   "license": "MIT",
