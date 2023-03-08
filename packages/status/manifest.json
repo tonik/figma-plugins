@@ -3,7 +3,7 @@
   "id": "1213881116798748502",
   "api": "1.0.0",
   "main": "code.js",
-  "editorType": ["figma", "figjam"],
+  "editorType": ["figma"],
   "ui": {
     "main": "ui.html"
   },
@@ -13,5 +13,6 @@
       "key": "workStatus",
       "description": "What is the work status?"
     }
-  ]
+  ],
+  "parameterOnly": false
 }

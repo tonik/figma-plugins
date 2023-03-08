@@ -176,7 +176,6 @@ const archive = () => {
 init()
 
 figma.on('run', ({ parameters }: RunEvent) => {
-  console.log('test')
   if (parameters) {
     startPluginWithParameters(parameters)
   }
