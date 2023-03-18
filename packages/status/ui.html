@@ -200,39 +200,48 @@
     if (appearanceInput) {
       appearanceInput.checked = true
     }
+    onAppearanceChange(appearance)
+  }
+
+  const onStatusChange = (status) => {
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'change-status',
+          payload: {
+            status,
+            appearance: document.querySelector('input[name="appearance"]:checked')?.value,
+          },
+        },
+      },
+      '*'
+    )
+  }
+
+  const onAppearanceChange = (appearance) => {
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'change-status',
+          payload: {
+            status: document.querySelector('input[name="type"]:checked')?.value,
+            appearance: appearance,
+          },
+        },
+      },
+      '*'
+    )
   }
 
   typeInputs.forEach((elem) => {
     elem.addEventListener('change', () => {
-      parent.postMessage(
-        {
-          pluginMessage: {
-            type: 'change-status',
-            payload: {
-              status: elem.value,
-              appearance: document.querySelector('input[name="appearance"]:checked').value,
-            },
-          },
-        },
-        '*'
-      )
+      onStatusChange(elem.value)
     })
   })
 
   appearanceInputs.forEach((elem) => {
     elem.addEventListener('change', () => {
-      parent.postMessage(
-        {
-          pluginMessage: {
-            type: 'change-status',
-            payload: {
-              status: document.querySelector('input[name="type"]:checked')?.value,
-              appearance: elem.value,
-            },
-          },
-        },
-        '*'
-      )
+      onAppearanceChange(elem.value)
     })
   })
 
