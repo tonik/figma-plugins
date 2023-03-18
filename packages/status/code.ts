@@ -65,7 +65,6 @@ const months = [
 ]
 
 figma.ui.onmessage = ({ type, payload }: MessageProps) => {
-  console.log(type, payload)
   switch (type) {
     case 'change-status':
       changeStatus(payload)
@@ -207,11 +206,9 @@ const archive = () => {
 
     archivePage.appendChild(el)
 
-    const dateObj = new Date()
-    const day = dateObj.getDay()
-    const month = months[dateObj.getMonth()]
-    const year = dateObj.getFullYear()
-    const formattedDate = `${month} ${day}, ${year}`
+    const timeElapsed = Date.now()
+    const dateObj = new Date(timeElapsed)
+    const formattedDate = dateObj.toDateString()
 
     el.name = `${el.name.replace(/^(🚧|⏰|✅) /, '')} | Archived on ${formattedDate}`
     el.y = isFinite(minY) ? minY - el.height - 400 : 0
