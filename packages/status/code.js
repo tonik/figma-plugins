@@ -9,6 +9,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 const init = () => __awaiter(this, void 0, void 0, function* () {
     figma.showUI(__uiFiles__.main, { width: 240, height: 332 });
+    const selection = figma.currentPage.selection[0];
+    const { backgrounds } = figma.currentPage;
+    const canvasBackground = rgbToHsl(backgrounds[0].type === 'SOLID' && backgrounds[0].color);
+    const appearance = canvasBackground.l > 40 ? 'light' : 'dark';
+    if (isSection(selection) || isFrame(selection)) {
+        const { color } = selection.fills[0];
+        const status = Object.keys(statusInfo).find((status) => {
+            return (statusInfo[status].colorSchemes.light.color.r === color.r &&
+                statusInfo[status].colorSchemes.light.color.g === color.g &&
+                statusInfo[status].colorSchemes.light.color.b === color.b);
+        });
+        figma.ui.postMessage({ status, appearance });
+    }
 });
 const months = [
     'January',
@@ -95,6 +108,34 @@ const statusInfo = {
         },
         icon: '✅',
     },
+};
+const rgbToHsl = ({ r, g, b }) => {
+    const cmin = Math.min(r, g, b);
+    const cmax = Math.max(r, g, b);
+    const delta = cmax - cmin;
+    let h = 0;
+    let s = 0;
+    let l = 0;
+    if (delta === 0)
+        h = 0;
+    else if (cmax === r)
+        h = ((g - b) / delta) % 6;
+    else if (cmax === g)
+        h = (b - r) / delta + 2;
+    else
+        h = (r - g) / delta + 4;
+    h = Math.round(h * 60);
+    if (h < 0)
+        h += 360;
+    l = (cmax + cmin) / 2;
+    s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+    s = Number((s * 100).toFixed(1));
+    l = Number((l * 100).toFixed(1));
+    return {
+        h,
+        s,
+        l,
+    };
 };
 const isSection = (node) => {
     return node.type === 'SECTION';

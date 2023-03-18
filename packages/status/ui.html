@@ -189,6 +189,19 @@
   const appearanceInputs = document.querySelectorAll('input[name="appearance"]')
   const archiveBtn = document.getElementById('archive')
 
+  onmessage = (event) => {
+    const { status, appearance } = event.data.pluginMessage
+    const input = document.querySelector(`input[value="${status}"]`)
+    if (input) {
+      input.checked = true
+    }
+
+    const appearanceInput = document.querySelector(`input[value="${appearance}"]`)
+    if (appearanceInput) {
+      appearanceInput.checked = true
+    }
+  }
+
   typeInputs.forEach((elem) => {
     elem.addEventListener('change', () => {
       parent.postMessage(
