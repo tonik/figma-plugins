@@ -16,9 +16,12 @@ const init = () => __awaiter(this, void 0, void 0, function* () {
     if (isSection(selection) || isFrame(selection)) {
         const { color } = selection.fills[0];
         const status = Object.keys(statusInfo).find((status) => {
-            return (statusInfo[status].colorSchemes.light.color.r === color.r &&
+            return ((statusInfo[status].colorSchemes.light.color.r === color.r &&
                 statusInfo[status].colorSchemes.light.color.g === color.g &&
-                statusInfo[status].colorSchemes.light.color.b === color.b);
+                statusInfo[status].colorSchemes.light.color.b === color.b) ||
+                (statusInfo[status].colorSchemes.dark.color.r === color.r &&
+                    statusInfo[status].colorSchemes.dark.color.g === color.g &&
+                    statusInfo[status].colorSchemes.dark.color.b === color.b));
         });
         figma.ui.postMessage({ status, appearance });
     }

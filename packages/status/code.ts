@@ -25,9 +25,12 @@ const init = async () => {
     const { color } = selection.fills[0]
     const status = Object.keys(statusInfo).find((status) => {
       return (
-        statusInfo[status].colorSchemes.light.color.r === color.r &&
-        statusInfo[status].colorSchemes.light.color.g === color.g &&
-        statusInfo[status].colorSchemes.light.color.b === color.b
+        (statusInfo[status].colorSchemes.light.color.r === color.r &&
+          statusInfo[status].colorSchemes.light.color.g === color.g &&
+          statusInfo[status].colorSchemes.light.color.b === color.b) ||
+        (statusInfo[status].colorSchemes.dark.color.r === color.r &&
+          statusInfo[status].colorSchemes.dark.color.g === color.g &&
+          statusInfo[status].colorSchemes.dark.color.b === color.b)
       )
     })
 
