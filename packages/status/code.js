@@ -139,15 +139,17 @@ const changeStatus = ({ status, appearance }) => {
         figma.notify('Please select a section or frame.');
         return;
     }
-    figma.currentPage.selection.forEach((el) => {
-        el.name = `${statusInfo[status].icon} ${el.name.replace(/^(🚧|⏰|✅) /, '')}`;
-        if (isSection(el) || isFrame(el)) {
-            el.fills = [{ type: 'SOLID', color: statusInfo[status].colorSchemes[appearance].color, opacity: 0.64 }];
-        }
-        else {
-            figma.notify('Please select a section or frame.');
-        }
-    });
+    if (status) {
+        figma.currentPage.selection.forEach((el) => {
+            el.name = `${statusInfo[status].icon} ${el.name.replace(/^(🚧|⏰|✅) /, '')}`;
+            if (isSection(el) || isFrame(el)) {
+                el.fills = [{ type: 'SOLID', color: statusInfo[status].colorSchemes[appearance].color, opacity: 0.64 }];
+            }
+            else {
+                figma.notify('Please select a section or frame.');
+            }
+        });
+    }
 };
 const archive = () => {
     var _a;
@@ -168,6 +170,18 @@ const archive = () => {
         el.name = `${el.name.replace(/^(🚧|⏰|✅) /, '')} | Archived on ${formattedDate}`;
         el.y = isFinite(minY) ? minY - el.height - 400 : 0;
         el.x = isFinite(x) ? x : 0;
+        if (isSection(el) || isFrame(el)) {
+            el.fills = [
+                {
+                    type: 'SOLID',
+                    color: {
+                        b: 0.9490196108818054,
+                        g: 0.9490196108818054,
+                        r: 0.9490196108818054,
+                    },
+                },
+            ];
+        }
     });
 };
 init();
@@ -189,13 +203,14 @@ const slugify = (str) => str
 function startPluginWithParameters(parameters) {
     const { workStatus } = parameters;
     figma.currentPage.selection.forEach((el) => {
+        var _a;
         const status = recognizeStatus(el);
         const { backgrounds } = figma.currentPage;
         const canvasBackground = rgbToHsl(backgrounds[0].type === 'SOLID' && backgrounds[0].color);
         const appearance = canvasBackground.l > 40 ? 'light' : 'dark';
         figma.ui.postMessage({ status, appearance });
         changeStatus({
-            status: slugify(workStatus !== null && workStatus !== void 0 ? workStatus : status),
+            status: slugify((_a = workStatus !== null && workStatus !== void 0 ? workStatus : status) !== null && _a !== void 0 ? _a : ``),
             appearance: 'light',
         });
     });

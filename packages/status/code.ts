@@ -172,15 +172,17 @@ const changeStatus = ({ status, appearance }: ChangeStatusPayload) => {
     return
   }
 
-  figma.currentPage.selection.forEach((el) => {
-    el.name = `${statusInfo[status].icon} ${el.name.replace(/^(🚧|⏰|✅) /, '')}`
+  if (status) {
+    figma.currentPage.selection.forEach((el) => {
+      el.name = `${statusInfo[status].icon} ${el.name.replace(/^(🚧|⏰|✅) /, '')}`
 
-    if (isSection(el) || isFrame(el)) {
-      el.fills = [{ type: 'SOLID', color: statusInfo[status].colorSchemes[appearance].color, opacity: 0.64 }]
-    } else {
-      figma.notify('Please select a section or frame.')
-    }
-  })
+      if (isSection(el) || isFrame(el)) {
+        el.fills = [{ type: 'SOLID', color: statusInfo[status].colorSchemes[appearance].color, opacity: 0.64 }]
+      } else {
+        figma.notify('Please select a section or frame.')
+      }
+    })
+  }
 }
 
 const archive = () => {
@@ -204,6 +206,19 @@ const archive = () => {
     el.name = `${el.name.replace(/^(🚧|⏰|✅) /, '')} | Archived on ${formattedDate}`
     el.y = isFinite(minY) ? minY - el.height - 400 : 0
     el.x = isFinite(x) ? x : 0
+
+    if (isSection(el) || isFrame(el)) {
+      el.fills = [
+        {
+          type: 'SOLID',
+          color: {
+            b: 0.9490196108818054,
+            g: 0.9490196108818054,
+            r: 0.9490196108818054,
+          },
+        },
+      ]
+    }
   })
 }
 
@@ -240,7 +255,7 @@ function startPluginWithParameters(parameters: PluginParameters) {
     figma.ui.postMessage({ status, appearance })
 
     changeStatus({
-      status: slugify(workStatus ?? status) as Status,
+      status: slugify(workStatus ?? status ?? ``) as Status,
       appearance: 'light',
     })
   })
