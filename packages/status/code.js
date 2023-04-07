@@ -14,32 +14,10 @@ const init = () => __awaiter(this, void 0, void 0, function* () {
     const canvasBackground = rgbToHsl(backgrounds[0].type === 'SOLID' && backgrounds[0].color);
     const appearance = canvasBackground.l > 40 ? 'light' : 'dark';
     if (isSection(selection) || isFrame(selection)) {
-        const { color } = selection.fills[0];
-        const status = Object.keys(statusInfo).find((status) => {
-            return ((statusInfo[status].colorSchemes.light.color.r === color.r &&
-                statusInfo[status].colorSchemes.light.color.g === color.g &&
-                statusInfo[status].colorSchemes.light.color.b === color.b) ||
-                (statusInfo[status].colorSchemes.dark.color.r === color.r &&
-                    statusInfo[status].colorSchemes.dark.color.g === color.g &&
-                    statusInfo[status].colorSchemes.dark.color.b === color.b));
-        });
+        const status = recognizeStatus(selection);
         figma.ui.postMessage({ status, appearance });
     }
 });
-const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-];
 figma.ui.onmessage = ({ type, payload }) => {
     switch (type) {
         case 'change-status':
@@ -139,6 +117,17 @@ const rgbToHsl = ({ r, g, b }) => {
         l,
     };
 };
+const recognizeStatus = (selection) => {
+    const { color } = selection.fills[0];
+    return Object.keys(statusInfo).find((status) => {
+        return ((statusInfo[status].colorSchemes.light.color.r === color.r &&
+            statusInfo[status].colorSchemes.light.color.g === color.g &&
+            statusInfo[status].colorSchemes.light.color.b === color.b) ||
+            (statusInfo[status].colorSchemes.dark.color.r === color.r &&
+                statusInfo[status].colorSchemes.dark.color.g === color.g &&
+                statusInfo[status].colorSchemes.dark.color.b === color.b));
+    });
+};
 const isSection = (node) => {
     return node.type === 'SECTION';
 };
@@ -185,21 +174,31 @@ init();
 figma.on('run', ({ parameters }) => {
     if (parameters) {
         startPluginWithParameters(parameters);
+        figma.closePlugin();
     }
+});
+figma.on('selectionchange', () => {
+    startPluginWithParameters({});
 });
 const slugify = (str) => str
     .toLowerCase()
-    .replace(/[^\w ]+/g, '')
+    .replace(/[^\w- ]+/g, '')
     .replace(/ +/g, '-')
     .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
     .replace(/^-/, '');
 function startPluginWithParameters(parameters) {
     const { workStatus } = parameters;
-    changeStatus({
-        status: slugify(workStatus),
-        appearance: 'light',
+    figma.currentPage.selection.forEach((el) => {
+        const status = recognizeStatus(el);
+        const { backgrounds } = figma.currentPage;
+        const canvasBackground = rgbToHsl(backgrounds[0].type === 'SOLID' && backgrounds[0].color);
+        const appearance = canvasBackground.l > 40 ? 'light' : 'dark';
+        figma.ui.postMessage({ status, appearance });
+        changeStatus({
+            status: slugify(workStatus !== null && workStatus !== void 0 ? workStatus : status),
+            appearance: 'light',
+        });
     });
-    figma.closePlugin();
 }
 figma.parameters.on('input', ({ query, result }) => {
     result.setSuggestions(['🚧  In progress', '⏰  Awaiting feedback', '✅  Development ready'].filter((s) => s.includes(query)));

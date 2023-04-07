@@ -9,7 +9,7 @@ type StatusInfo = {
   }
 }
 type ChangeStatusPayload = {
-  status: Status
+  status?: Status
   appearance: Appearance
 }
 
@@ -22,18 +22,7 @@ const init = async () => {
   const appearance = canvasBackground.l > 40 ? 'light' : 'dark'
 
   if (isSection(selection) || isFrame(selection)) {
-    const { color } = selection.fills[0]
-    const status = Object.keys(statusInfo).find((status) => {
-      return (
-        (statusInfo[status].colorSchemes.light.color.r === color.r &&
-          statusInfo[status].colorSchemes.light.color.g === color.g &&
-          statusInfo[status].colorSchemes.light.color.b === color.b) ||
-        (statusInfo[status].colorSchemes.dark.color.r === color.r &&
-          statusInfo[status].colorSchemes.dark.color.g === color.g &&
-          statusInfo[status].colorSchemes.dark.color.b === color.b)
-      )
-    })
-
+    const status = recognizeStatus(selection)
     figma.ui.postMessage({ status, appearance })
   }
 }
@@ -51,21 +40,6 @@ type MessageProps =
 interface PluginParameters extends ParameterValues {
   workStatus?: Status
 }
-
-const months = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
 
 figma.ui.onmessage = ({ type, payload }: MessageProps) => {
   switch (type) {
@@ -170,6 +144,20 @@ const rgbToHsl = ({ r, g, b }: RGB) => {
   }
 }
 
+const recognizeStatus = (selection: FrameNode | SectionNode): Status => {
+  const { color } = selection.fills[0]
+  return Object.keys(statusInfo).find((status) => {
+    return (
+      (statusInfo[status].colorSchemes.light.color.r === color.r &&
+        statusInfo[status].colorSchemes.light.color.g === color.g &&
+        statusInfo[status].colorSchemes.light.color.b === color.b) ||
+      (statusInfo[status].colorSchemes.dark.color.r === color.r &&
+        statusInfo[status].colorSchemes.dark.color.g === color.g &&
+        statusInfo[status].colorSchemes.dark.color.b === color.b)
+    )
+  }) as Status
+}
+
 const isSection = (node: SceneNode): node is SectionNode => {
   return node.type === 'SECTION'
 }
@@ -224,25 +212,38 @@ init()
 figma.on('run', ({ parameters }: RunEvent) => {
   if (parameters) {
     startPluginWithParameters(parameters)
+    figma.closePlugin()
   }
+})
+
+figma.on('selectionchange', () => {
+  startPluginWithParameters({})
 })
 
 const slugify = (str: string) =>
   str
     .toLowerCase()
-    .replace(/[^\w ]+/g, '')
+    .replace(/[^\w- ]+/g, '')
     .replace(/ +/g, '-')
     .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
     .replace(/^-/, '')
 
 function startPluginWithParameters(parameters: PluginParameters) {
   const { workStatus } = parameters
-  changeStatus({
-    status: slugify(workStatus) as Status,
-    appearance: 'light',
-  })
 
-  figma.closePlugin()
+  figma.currentPage.selection.forEach((el) => {
+    const status = recognizeStatus(el as FrameNode | SectionNode)
+    const { backgrounds } = figma.currentPage
+    const canvasBackground = rgbToHsl(backgrounds[0].type === 'SOLID' && backgrounds[0].color)
+    const appearance = canvasBackground.l > 40 ? 'light' : 'dark'
+
+    figma.ui.postMessage({ status, appearance })
+
+    changeStatus({
+      status: slugify(workStatus ?? status) as Status,
+      appearance: 'light',
+    })
+  })
 }
 
 figma.parameters.on('input', ({ query, result }) => {
