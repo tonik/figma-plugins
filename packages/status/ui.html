@@ -1,7 +1,7 @@
 <style>
   body {
     margin: 0;
-    padding: 0 16px;
+    padding: 0 16px 16px;
   }
 
   .label {
@@ -194,6 +194,12 @@
     const input = document.querySelector(`input[value="${status}"]`)
     if (input) {
       input.checked = true
+    }
+
+    if (status === undefined) {
+      document.querySelectorAll('input[name="type"]').forEach((elem) => {
+        elem.checked = false
+      })
     }
 
     const appearanceInput = document.querySelector(`input[value="${appearance}"]`)

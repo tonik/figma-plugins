@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const init = () => __awaiter(this, void 0, void 0, function* () {
-    figma.showUI(__uiFiles__.main, { width: 240, height: 332 });
+    figma.showUI(__uiFiles__.main, { width: 240, height: 338 });
     const selection = figma.currentPage.selection[0];
     const { backgrounds } = figma.currentPage;
     const canvasBackground = rgbToHsl(backgrounds[0].type === 'SOLID' && backgrounds[0].color);
@@ -142,7 +142,12 @@ const changeStatus = ({ status, appearance }) => {
     if (status) {
         figma.currentPage.selection.forEach((el) => {
             el.name = `${statusInfo[status].icon} ${el.name.replace(/^(🚧|⏰|✅) /, '')}`;
+            if (isFrame(el)) {
+                el.strokeWeight = 0;
+                el.cornerRadius = 16;
+            }
             if (isSection(el) || isFrame(el)) {
+                console.log('el', el);
                 el.fills = [{ type: 'SOLID', color: statusInfo[status].colorSchemes[appearance].color, opacity: 0.64 }];
             }
             else {
@@ -166,7 +171,7 @@ const archive = () => {
         archivePage.appendChild(el);
         const timeElapsed = Date.now();
         const dateObj = new Date(timeElapsed);
-        const formattedDate = dateObj.toDateString();
+        const formattedDate = dateObj.toDateString().split(' ').slice(1).join(' ');
         el.name = `${el.name.replace(/^(🚧|⏰|✅) /, '')} | Archived on ${formattedDate}`;
         el.y = isFinite(minY) ? minY - el.height - 400 : 0;
         el.x = isFinite(x) ? x : 0;
@@ -192,6 +197,11 @@ figma.on('run', ({ parameters }) => {
     }
 });
 figma.on('selectionchange', () => {
+    console.log('test');
+    const { backgrounds } = figma.currentPage;
+    const canvasBackground = rgbToHsl(backgrounds[0].type === 'SOLID' && backgrounds[0].color);
+    const appearance = canvasBackground.l > 40 ? 'light' : 'dark';
+    figma.ui.postMessage({ status: undefined, appearance });
     startPluginWithParameters({});
 });
 const slugify = (str) => str
